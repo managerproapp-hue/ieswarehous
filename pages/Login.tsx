@@ -6,6 +6,9 @@ import { useCreator } from '../contexts/CreatorContext';
 import { useData } from '../contexts/DataContext';
 import { UploadIcon, DownloadIcon } from '../components/icons';
 
+// New App Logo URL provided
+const APP_LOGO_URL = "https://drive.google.com/uc?export=view&id=1nu2fOvKoWMIKGehqtjLjpcjuqiyMSR8A";
+
 const Login: React.FC = () => {
   // Clear credentials for production deployment
   const [email, setEmail] = useState('');
@@ -63,11 +66,21 @@ const Login: React.FC = () => {
         <div className="h-1.5 bg-indigo-500"></div>
         <div className="p-8 space-y-8">
             <div className="text-center">
-                <img src={creatorInfo.logo} alt="Logo" className="mx-auto h-20 w-20 rounded-full object-contain bg-white"/>
-                <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
-                    Iniciar sesión en {creatorInfo.appName}
+                {/* Main App Logo */}
+                <img src={APP_LOGO_URL} alt="App Logo" className="mx-auto h-32 w-auto object-contain"/>
+                
+                <h2 className="mt-4 text-3xl font-extrabold text-gray-900 dark:text-white">
+                    {creatorInfo.appName}
                 </h2>
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                
+                {/* Creator Badge */}
+                <div className="mt-3 flex items-center justify-center gap-2 p-1.5 bg-gray-50 dark:bg-gray-700/50 rounded-full inline-flex mx-auto border border-gray-100 dark:border-gray-600">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 pl-2">Creado por</span>
+                    <img src={creatorInfo.logo} alt={creatorInfo.creatorName} className="w-6 h-6 rounded-full border border-gray-200 dark:border-gray-500 object-cover" />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 pr-2">{creatorInfo.creatorName}</span>
+                </div>
+
+                <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
                   Gestión integral offline
                 </p>
             </div>
