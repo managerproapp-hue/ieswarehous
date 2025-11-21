@@ -6,8 +6,8 @@ import { useCreator } from '../contexts/CreatorContext';
 import { useData } from '../contexts/DataContext';
 import { UploadIcon, DownloadIcon } from '../components/icons';
 
-// New App Logo URL provided
-const APP_LOGO_URL = "https://drive.google.com/uc?export=view&id=1nu2fOvKoWMIKGehqtjLjpcjuqiyMSR8A";
+// New App Logo URL provided (Using lh3 for direct embedding stability)
+const APP_LOGO_URL = "https://lh3.googleusercontent.com/d/1nu2fOvKoWMIKGehqtjLjpcjuqiyMSR8A";
 
 const Login: React.FC = () => {
   // Clear credentials for production deployment
@@ -67,7 +67,12 @@ const Login: React.FC = () => {
         <div className="p-8 space-y-8">
             <div className="text-center">
                 {/* Main App Logo */}
-                <img src={APP_LOGO_URL} alt="App Logo" className="mx-auto h-32 w-auto object-contain"/>
+                <img 
+                    src={APP_LOGO_URL} 
+                    alt="App Logo" 
+                    className="mx-auto h-32 w-auto object-contain"
+                    referrerPolicy="no-referrer"
+                />
                 
                 <h2 className="mt-4 text-3xl font-extrabold text-gray-900 dark:text-white">
                     {creatorInfo.appName}
@@ -76,7 +81,12 @@ const Login: React.FC = () => {
                 {/* Creator Badge */}
                 <div className="mt-3 flex items-center justify-center gap-2 p-1.5 bg-gray-50 dark:bg-gray-700/50 rounded-full inline-flex mx-auto border border-gray-100 dark:border-gray-600">
                     <span className="text-xs text-gray-500 dark:text-gray-400 pl-2">Creado por</span>
-                    <img src={creatorInfo.logo} alt={creatorInfo.creatorName} className="w-6 h-6 rounded-full border border-gray-200 dark:border-gray-500 object-cover" />
+                    <img 
+                        src={creatorInfo.logo} 
+                        alt={creatorInfo.creatorName} 
+                        className="w-6 h-6 rounded-full border border-gray-200 dark:border-gray-500 object-cover" 
+                        referrerPolicy="no-referrer"
+                    />
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300 pr-2">{creatorInfo.creatorName}</span>
                 </div>
 

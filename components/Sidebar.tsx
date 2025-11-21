@@ -42,7 +42,12 @@ const Sidebar = () => {
       </nav>
 
       <div className="p-4 border-t border-white/10 text-center">
-        <img src={creatorInfo.logo} alt="Creator Logo" className="w-16 h-16 rounded-full mx-auto mb-2" />
+        <img 
+            src={creatorInfo.logo} 
+            alt="Creator Logo" 
+            className="w-16 h-16 rounded-full mx-auto mb-2 object-cover" 
+            referrerPolicy="no-referrer"
+        />
         <p className="text-sm font-semibold">{creatorInfo.creatorName}</p>
         <p className="text-xs text-white/70">{creatorInfo.contactEmail}</p>
         <p className="text-xs text-white/50 mt-2">{creatorInfo.copyrightText}</p>

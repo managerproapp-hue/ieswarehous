@@ -53,7 +53,8 @@ export const DEFAULT_CREATOR_INFO: CreatorInfo = {
   creatorName: 'Juan Codina',
   contactEmail: 'managerproapp@gmail.com',
   copyrightText: `© ${new Date().getFullYear()} Todos los derechos reservados`,
-  logo: 'https://drive.google.com/uc?export=view&id=1DkCOqFGdw3PZbyNUnTQNgeaAGjBfv1_e',
+  // Using lh3.googleusercontent.com for more reliable direct image embedding
+  logo: 'https://lh3.googleusercontent.com/d/1DkCOqFGdw3PZbyNUnTQNgeaAGjBfv1_e',
   systemUpdateUrl: 'https://drive.google.com/drive/folders/1SnoOU-e5VdzpEu1Q8Gfa07oioVReX55h?usp=sharing',
   ordersFolderUrl: 'https://drive.google.com/drive/folders/18qj5vYAQUH6mDg9glLAT23yq4azKigU-?usp=sharing',
 };
