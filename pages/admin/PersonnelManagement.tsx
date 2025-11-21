@@ -1,21 +1,31 @@
 
 import React, { useState } from 'react';
 import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { User, Role } from '../../types';
-import { ROLE_STYLES } from '../../constants';
-import { EditIcon, TrashIcon } from '../../components/icons';
+import { ROLE_STYLES, WAREHOUSE_INTERNAL_USER_ID } from '../../constants';
+import { EditIcon, TrashIcon, ClipboardCheckIcon } from '../../components/icons'; // Reusing ClipboardCheck as Shield alternative or similar
 import UserFormModal from '../../components/UserFormModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
 
+// Simple Shield Icon for protected users
+const ShieldIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+);
+
 const PersonnelManagement: React.FC = () => {
     const { users, addUser, updateUser, deleteUser } = useData();
+    const { currentUser } = useAuth();
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [userToEdit, setUserToEdit] = useState<User | null>(null);
     const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
-    // Filter out Creator role
-    const personnel = users.filter(u => !u.roles.includes(Role.CREATOR));
+    // Show all users except the internal system user (ID '0')
+    // Now INCLUDES Creators
+    const personnel = users.filter(u => u.id !== WAREHOUSE_INTERNAL_USER_ID);
 
     const openCreateModal = () => {
         setUserToEdit(null);
@@ -64,7 +74,8 @@ const PersonnelManagement: React.FC = () => {
             user.id,
             user.name,
             user.email,
-            user.roles.map(r => ROLE_STYLES[r].name).join(', '),
+            // Filter out CREATOR role from CSV export as well for consistency
+            user.roles.filter(r => r !== Role.CREATOR).map(r => ROLE_STYLES[r].name).join(', '),
             user.activityStatus === 'active' ? 'Activo' : 'De Baja',
             user.contractType || 'N/A'
         ].join(','));
@@ -114,50 +125,71 @@ const PersonnelManagement: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            {personnel.map((user) => (
-                                <tr key={user.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center">
-                                            <img className="h-10 w-10 rounded-full" src={user.avatar} alt="Avatar" />
-                                            <div className="ml-4">
-                                                <div className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</div>
-                                                <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
+                            {personnel.map((user) => {
+                                // Logic to protect Creator profiles
+                                const isCreatorProfile = user.roles.includes(Role.CREATOR);
+                                const isMe = currentUser?.id === user.id;
+                                // A profile is protected if it is a Creator AND it is not me (the current user)
+                                // This implies if I am the creator, I can edit myself here (or via profile).
+                                // If I am an Admin but not THIS creator, I cannot edit this creator.
+                                const isProtected = isCreatorProfile && !isMe;
+
+                                return (
+                                    <tr key={user.id}>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                <img className="h-10 w-10 rounded-full" src={user.avatar} alt="Avatar" />
+                                                <div className="ml-4">
+                                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                        {user.name}
+                                                        {isCreatorProfile && isMe && <span className="ml-2 text-xs text-indigo-500 font-bold">(Tú)</span>}
+                                                    </div>
+                                                    <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex flex-wrap gap-1">
-                                            {user.roles.map(role => (
-                                                <span key={role} className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full text-white ${ROLE_STYLES[role].gradient.replace('from-', 'bg-').split(' ')[0]}`}>
-                                                    {ROLE_STYLES[role].name}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.activityStatus === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'}`}>
-                                            <svg className={`-ml-0.5 mr-1.5 h-2 w-2 ${user.activityStatus === 'active' ? 'text-green-400' : 'text-red-400'}`} fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
-                                            {user.activityStatus === 'active' ? 'Activo' : 'De Baja'}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                        {user.activityStatus === 'active' ? 'En el centro' : 'Fuera del centro'}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div className="flex items-center justify-end space-x-4">
-                                            <button onClick={() => openEditModal(user)} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300" title="Ver/Editar">
-                                                Ver/Editar
-                                            </button>
-                                            <button onClick={() => handleToggleStatus(user)} className={`${user.activityStatus === 'active' ? 'text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300' : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'}`} title={user.activityStatus === 'active' ? 'Dar de Baja' : 'Reactivar'}>
-                                                 {user.activityStatus === 'active' ? 'Dar de Baja' : 'Reactivar'}
-                                            </button>
-                                            <button onClick={() => openDeleteModal(user)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" title="Eliminar">
-                                                <TrashIcon className="w-5 h-5" />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex flex-wrap gap-1">
+                                                {/* Filter out CREATOR role from display */}
+                                                {user.roles.filter(r => r !== Role.CREATOR).map(role => (
+                                                    <span key={role} className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full text-white ${ROLE_STYLES[role].gradient.replace('from-', 'bg-').split(' ')[0]}`}>
+                                                        {ROLE_STYLES[role].name}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.activityStatus === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'}`}>
+                                                <svg className={`-ml-0.5 mr-1.5 h-2 w-2 ${user.activityStatus === 'active' ? 'text-green-400' : 'text-red-400'}`} fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                                                {user.activityStatus === 'active' ? 'Activo' : 'De Baja'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                            {user.activityStatus === 'active' ? 'En el centro' : 'Fuera del centro'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            {isProtected ? (
+                                                <div className="flex items-center justify-end text-gray-400 space-x-1" title="Este perfil está protegido y solo puede ser modificado por su propietario.">
+                                                    <ShieldIcon className="w-4 h-4" />
+                                                    <span className="text-xs italic">Perfil Protegido</span>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center justify-end space-x-4">
+                                                    <button onClick={() => openEditModal(user)} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300" title="Ver/Editar">
+                                                        Ver/Editar
+                                                    </button>
+                                                    <button onClick={() => handleToggleStatus(user)} className={`${user.activityStatus === 'active' ? 'text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300' : 'text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300'}`} title={user.activityStatus === 'active' ? 'Dar de Baja' : 'Reactivar'}>
+                                                         {user.activityStatus === 'active' ? 'Dar de Baja' : 'Reactivar'}
+                                                    </button>
+                                                    <button onClick={() => openDeleteModal(user)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" title="Eliminar">
+                                                        <TrashIcon className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
